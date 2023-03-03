@@ -1,0 +1,73 @@
+/** xlsx viewer style **/
+
+.xlsx-viewer-container .xlsx-viewer-tip {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 200px;
+}
+.xlsx-viewer-container .xlsx-viewer-sheet {
+  display: flex;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+}
+.xlsx-viewer-container .xlsx-viewer-sheet .xlsx-viewer-sheet-content {
+  background-color: #f0f0f0;
+  border: 1px solid #ccc;
+  padding: .25rem .5rem;
+  margin-right: -1px;
+  cursor: pointer;
+}
+.xlsx-viewer-container .xlsx-viewer-sheet .xlsx-viewer-sheet-content.active {
+  background-color: #fff;
+}
+
+.xlsx-viewer-container .xlsx-viewer-table table {
+  border-collapse: collapse;
+  border-spacing: 0;
+  max-width: 100%;
+}
+
+.xlsx-viewer-container .xlsx-viewer-table table thead {
+  border-bottom: .15rem solid rgba(0,0,0,.1);
+  background-color:rgba(0,0,0,.05);
+}
+
+.xlsx-viewer-container .xlsx-viewer-table table thead tr {
+
+}
+
+.xlsx-viewer-container .xlsx-viewer-table table thead tr th {
+  padding: 5px;
+  border: 1px solid rgba(0,0,0,.1);
+  text-align: center;
+}
+
+.xlsx-viewer-container .xlsx-viewer-table table tbody {
+  
+}
+
+.xlsx-viewer-container .xlsx-viewer-table table tbody tr {
+  
+}
+
+.xlsx-viewer-container .xlsx-viewer-table table tbody tr td {
+  padding: 5px;
+  border: 1px solid rgba(0,0,0,.1);
+  text-align: left;
+  vertical-align: middle;
+}
+
+.xlsx-viewer-container .xlsx-viewer-table table tbody tr td:first-of-type {
+  text-align: center;
+}
+
+.xlsx-viewer-container .xlsx-viewer-table .xlsx-viewer-table-content {
+  width: 100%;
+  overflow-x: auto;
+  display: none;
+}
+
+.xlsx-viewer-container .xlsx-viewer-table .xlsx-viewer-table-content.active {
+  display: block;
+}

@@ -1,0 +1,32 @@
+{
+  "name": "xlsx-viewer",
+  "version": "1.0.0",
+  "description": "xlsx viewer",
+  "main": "dist/main.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/wd3322/xlsx-viewer"
+  },
+  "scripts": {
+    "build": "webpack --config webpack.config.js"
+  },
+  "keywords": [
+    "xlsx-viewer",
+    "xlsx viewer"
+  ],
+  "dependencies": {
+    "core-js": "^3.6.5",
+    "dayjs": "^1.11.7",
+    "exceljs": "^4.3.0"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.15.0",
+    "@babel/preset-env": "^7.15.0",
+    "babel-loader": "^8.2.2",
+    "typescript": "^4.7.4",
+    "ts-loader": "^9.3.1",
+    "webpack": "^5.73.0",
+    "webpack-cli": "^4.10.0",
+    "webpack-dev-server": "^4.9.3"
+  }
+}
