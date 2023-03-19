@@ -145,7 +145,7 @@ async function renderXlsx(
       xlsxViewerTipElement.classList.add('xlsx-viewer-tip')
       xlsxViewerSheetElement.classList.add('xlsx-viewer-sheet')
       xlsxViewerTableElement.classList.add('xlsx-viewer-table')
-      xlsxViewerTipElement.innerHTML = 'Loading...'
+      xlsxViewerTipElement.innerText = 'Loading...'
       viewerElements.containerElement = xlsxViewerContainerElement
       viewerElements.tipElement = xlsxViewerTipElement
       viewerElements.sheetElement = xlsxViewerSheetElement
