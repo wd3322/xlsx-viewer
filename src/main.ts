@@ -10,7 +10,6 @@ import ExcelJS from 'exceljs'
 interface SheetItem {
   id: string,
   name: string,
-  data: any[],
   columns: any[],
   rows: any[],
   merges: any[],
@@ -80,7 +79,6 @@ async function renderXlsx(
               const sheetItem: SheetItem = {
                 id: sheetId,
                 name: worksheet.name,
-                data: [],
                 columns: [],
                 rows: [],
                 merges: [],
@@ -88,17 +86,16 @@ async function renderXlsx(
                 rendered: false
               }
               // set sheet column
-              for (let i = 1; i <= worksheet.actualColumnCount; i++) {
-                const column: any = worksheet.getColumn(i)
+              for (let i = 0; i < worksheet.columnCount; i++) {
+                const column: any = worksheet.getColumn(i + 1)
                 sheetItem.columns.push(column)
               }
               // set sheet row
-              for (let i = 1; i <= worksheet.actualRowCount; i++) {
-                const row: any = worksheet.getRow(i)
-                const values: string[] = []
+              for (let i = 0; i < worksheet.rowCount; i++) {
+                const row: any = worksheet.getRow(i + 1)
                 // set sheet row cell merges
-                for (let j = 1; j <= row.cellCount; j++) {
-                  const cell: any = row.getCell(j)
+                for (let j = 0; j < row.cellCount; j++) {
+                  const cell: any = row.getCell(j + 1)
                   if (cell.isMerged) {
                     const targetAddress: any = sheetItem.merges.find((item: any) => item.address === cell.master._address)
                     if (targetAddress) {
@@ -112,16 +109,6 @@ async function renderXlsx(
                     }
                   }
                 }
-                // set sheet row values
-                for (let j = 1; j <= row.values.length; j++) {
-                  const value: any = row.values[j]
-                  if (value instanceof Date) {
-                    values.push(Dayjs(value).format('YYYY-MM-DD HH:mm:ss'))
-                  } else if (j === row.values.length ?  value : true) {
-                    values.push(value)
-                  }
-                }
-                sheetItem.data.push(values)
                 sheetItem.rows.push(row)
               }
               viewerParams.sheetList.push(sheetItem)
@@ -194,30 +181,34 @@ async function renderXlsx(
       if (sheetItem.columns.length > 0) {
         const trElement: HTMLElement = document.createElement('tr')
         const firstThElement: HTMLElement = document.createElement('th')
-        firstThElement.style.width = '35px'
+        let tableWidth: number = 50
+        firstThElement.style.width = '50px'
         trElement.appendChild(firstThElement)
         for (let i = 0; i < sheetItem.columns.length; i++) {
           const column: any = sheetItem.columns[i]
           const thElement: HTMLElement = document.createElement('th')
-          if (column.width) {
-            thElement.style.width = `${column.width / 0.125}px`
-          }
+          const columnWidth: number = column.width > 0 ? column.width / 0.125 : 100
+          tableWidth = tableWidth + columnWidth
+          thElement.style.width = `${columnWidth}px`
           thElement.innerText = column.letter
           trElement.appendChild(thElement)
         }
         theadElement.appendChild(trElement)
+        tableElement.style.width = `${tableWidth}px`
       }
       // set sheet rows element
       if (sheetItem.rows.length > 0) {
         for (let i = 0; i < sheetItem.rows.length; i++) {
           const row: any = sheetItem.rows[i]
-          const cells: any = row._cells.filter((cell: any) => !cell.isMerged || (cell.isMerged && cell.master._address === cell._address))
           const trElement: HTMLElement = document.createElement('tr')
           const firstTdElement: HTMLElement = document.createElement('td')
           firstTdElement.innerText = (i + 1).toString()
           trElement.appendChild(firstTdElement)
-          for (let j = 0; j < cells.length; j++) {
-            const cell: any = cells[j]
+          for (let j = 0; j < sheetItem.columns.length; j++) {
+            const cell: any = row.getCell(j + 1)
+            if (cell.isMerged && cell.master._address !== cell._address) {
+              continue 
+            }
             const tdElement: HTMLElement = document.createElement('td')
             if (cell.isMerged && cell.master._address === cell._address) {
               const merge: any = sheetItem.merges.find(item => item.address === cell._address)
@@ -258,7 +249,29 @@ async function renderXlsx(
               tdElement.style.fontStyle = italic ? 'italic' : 'normal'
               tdElement.style.textDecoration = underline ? 'underline' : 'none'
             }
-            tdElement.innerText = cell.value
+            if (
+              typeof cell.value === 'object' &&
+              cell.value !== null &&
+              cell.value.richText instanceof Array
+            ) {
+              for (const span of cell.value.richText) {
+                const spanElement: HTMLElement = document.createElement('span')
+                const { font, text } = span
+                const { color, name, size, bold, italic, underline } = font
+                spanElement.style.color = color?.argb ? (utilMethods.parseARGB(color?.argb)?.color as string) : '#333'
+                spanElement.style.fontFamily = name
+                spanElement.style.fontSize = size ? `${size / 0.75}px` : '14px'
+                spanElement.style.fontWeight = bold ? 'bold' : 'normal'
+                spanElement.style.fontStyle = italic ? 'italic' : 'normal'
+                spanElement.style.textDecoration = underline ? 'underline' : 'none'
+                spanElement.innerText = text
+                tdElement.appendChild(spanElement)
+              }
+            } else if (cell.value instanceof Date) {
+              tdElement.innerText = Dayjs(cell.value).format('YYYY-MM-DD HH:mm:ss')
+            } else {
+              tdElement.innerText = cell.value
+            }
             trElement.appendChild(tdElement)
           }
           tbodyElement.appendChild(trElement)

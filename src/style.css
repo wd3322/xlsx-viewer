@@ -25,12 +25,10 @@
 .xlsx-viewer-container .xlsx-viewer-table table {
   border-collapse: collapse;
   border-spacing: 0;
-  max-width: 100%;
 }
 
 .xlsx-viewer-container .xlsx-viewer-table table thead {
-  border-bottom: .15rem solid rgba(0,0,0,.1);
-  background-color:rgba(0,0,0,.05);
+  background-color: #f0f0f0;
 }
 
 .xlsx-viewer-container .xlsx-viewer-table table thead tr {
@@ -38,13 +36,13 @@
 }
 
 .xlsx-viewer-container .xlsx-viewer-table table thead tr th {
+  border: 1px solid #ccc;
   padding: 5px;
-  border: 1px solid rgba(0,0,0,.1);
   text-align: center;
 }
 
 .xlsx-viewer-container .xlsx-viewer-table table tbody {
-  
+  background-color: #fff;
 }
 
 .xlsx-viewer-container .xlsx-viewer-table table tbody tr {
@@ -52,8 +50,8 @@
 }
 
 .xlsx-viewer-container .xlsx-viewer-table table tbody tr td {
+  border: 1px solid #ccc;
   padding: 5px;
-  border: 1px solid rgba(0,0,0,.1);
   text-align: left;
   vertical-align: middle;
 }
