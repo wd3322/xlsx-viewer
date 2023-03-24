@@ -125,23 +125,23 @@ async function renderXlsx(
     },
     createXlsxContainerElement(): void {
       const xlsxViewerContainerElement: HTMLElement = document.createElement('div')
-      const xlsxViewerTipElement: HTMLElement = document.createElement('div')
       const xlsxViewerSheetElement: HTMLElement = document.createElement('div')
       const xlsxViewerTableElement: HTMLElement = document.createElement('div')
+      const xlsxViewerTipElement: HTMLElement = document.createElement('div')
       xlsxViewerContainerElement.classList.add('xlsx-viewer-container')
-      xlsxViewerTipElement.classList.add('xlsx-viewer-tip')
       xlsxViewerSheetElement.classList.add('xlsx-viewer-sheet')
       xlsxViewerTableElement.classList.add('xlsx-viewer-table')
+      xlsxViewerTipElement.classList.add('xlsx-viewer-tip')
       xlsxViewerTipElement.innerText = 'Loading...'
       viewerElements.containerElement = xlsxViewerContainerElement
-      viewerElements.tipElement = xlsxViewerTipElement
       viewerElements.sheetElement = xlsxViewerSheetElement
       viewerElements.tableElement = xlsxViewerTableElement
+      viewerElements.tipElement = xlsxViewerTipElement
       viewerElements.renderElement = renderElement
       viewerElements.renderElement.appendChild(xlsxViewerContainerElement)
-      viewerElements.containerElement.appendChild(xlsxViewerTipElement)
       viewerElements.containerElement.appendChild(xlsxViewerSheetElement)
       viewerElements.containerElement.appendChild(xlsxViewerTableElement)
+      viewerElements.containerElement.appendChild(xlsxViewerTipElement)
     },
     createTableContainerElement(): void {
        for (let i = 0; i < viewerParams.sheetList.length; i++) {
@@ -169,10 +169,10 @@ async function renderXlsx(
         viewerElements.tableElement?.appendChild(xlsxViewerTableItemElement)
       }
     },
-    async createTableContentElement(
+    createTableContentElement(
       sheetItem: SheetItem,
       xlsxViewerTableItemElement: HTMLElement
-    ): Promise<void> {
+    ): void {
       // set table element
       const tableElement: HTMLElement = document.createElement('table')
       const theadElement: HTMLElement = document.createElement('thead')
@@ -256,15 +256,16 @@ async function renderXlsx(
             ) {
               for (const span of cell.value.richText) {
                 const spanElement: HTMLElement = document.createElement('span')
-                const { font, text } = span
-                const { color, name, size, bold, italic, underline } = font
-                spanElement.style.color = color?.argb ? (utilMethods.parseARGB(color?.argb)?.color as string) : '#333'
-                spanElement.style.fontFamily = name
-                spanElement.style.fontSize = size ? `${size / 0.75}px` : '14px'
-                spanElement.style.fontWeight = bold ? 'bold' : 'normal'
-                spanElement.style.fontStyle = italic ? 'italic' : 'normal'
-                spanElement.style.textDecoration = underline ? 'underline' : 'none'
-                spanElement.innerText = text
+                if (span?.font) {
+                  const { color, name, size, bold, italic, underline } = span.font
+                  spanElement.style.color = color?.argb ? (utilMethods.parseARGB(color?.argb)?.color as string) : '#333'
+                  spanElement.style.fontFamily = name
+                  spanElement.style.fontSize = size ? `${size / 0.75}px` : '14px'
+                  spanElement.style.fontWeight = bold ? 'bold' : 'normal'
+                  spanElement.style.fontStyle = italic ? 'italic' : 'normal'
+                  spanElement.style.textDecoration = underline ? 'underline' : 'none'
+                }
+                spanElement.innerText = span.text
                 tdElement.appendChild(spanElement)
               }
             } else if (cell.value instanceof Date) {
