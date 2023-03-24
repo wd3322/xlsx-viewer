@@ -221,18 +221,22 @@ async function renderXlsx(
                 tdElement.setAttribute('rowSpan', rowSpan.toString()) 
               }
             }
+            // set row size
             if (row.height) {
               tdElement.style.height = `${row.height / 0.75}px`
             }
+            // set cell alignment
             if (cell.style?.alignment) {
               const { horizontal, vertical } = cell.style.alignment
               tdElement.style.textAlign = horizontal
               tdElement.style.verticalAlign = vertical
             }
+            // set cell background
             if (cell.style?.fill) {
               const { fgColor } = cell.style.fill
               tdElement.style.backgroundColor = fgColor?.argb ? (utilMethods.parseARGB(fgColor?.argb)?.color as string) : '#fff'
             }
+            // set cell border
             if (cell.style?.border) {
               const { top, bottom, left, right } = cell.style.border
               tdElement.style.borderTop = top?.color?.argb ? '1px solid ' + (utilMethods.parseARGB(top?.color?.argb)?.color as string) : ''
@@ -240,6 +244,7 @@ async function renderXlsx(
               tdElement.style.borderLeft = left?.color?.argb ? '1px solid ' + (utilMethods.parseARGB(left?.color?.argb)?.color as string) : ''
               tdElement.style.borderRight = right?.color?.argb ? '1px solid ' + (utilMethods.parseARGB(right?.color?.argb)?.color as string) : ''
             }
+            // set cell font
             if (cell.style?.font) {
               const { color, name, size, bold, italic, underline } = cell.style.font
               tdElement.style.color = color?.argb ? (utilMethods.parseARGB(color?.argb)?.color as string) : '#333'
@@ -249,24 +254,33 @@ async function renderXlsx(
               tdElement.style.fontStyle = italic ? 'italic' : 'normal'
               tdElement.style.textDecoration = underline ? 'underline' : 'none'
             }
-            if (
-              typeof cell.value === 'object' &&
-              cell.value !== null &&
-              cell.value.richText instanceof Array
-            ) {
-              for (const span of cell.value.richText) {
-                const spanElement: HTMLElement = document.createElement('span')
-                if (span?.font) {
-                  const { color, name, size, bold, italic, underline } = span.font
-                  spanElement.style.color = color?.argb ? (utilMethods.parseARGB(color?.argb)?.color as string) : '#333'
-                  spanElement.style.fontFamily = name
-                  spanElement.style.fontSize = size ? `${size / 0.75}px` : '14px'
-                  spanElement.style.fontWeight = bold ? 'bold' : 'normal'
-                  spanElement.style.fontStyle = italic ? 'italic' : 'normal'
-                  spanElement.style.textDecoration = underline ? 'underline' : 'none'
+            // set cell value
+            if (typeof cell.value === 'object' && cell.value !== null) {
+              const { richText, hyperlink } = cell.value
+              if (richText && richText instanceof Array) {
+                for (const span of richText) {
+                  const spanElement: HTMLElement = document.createElement('span')
+                  if (span?.font) {
+                    const { color, name, size, bold, italic, underline } = span.font
+                    spanElement.style.color = color?.argb ? (utilMethods.parseARGB(color?.argb)?.color as string) : '#333'
+                    spanElement.style.fontFamily = name
+                    spanElement.style.fontSize = size ? `${size / 0.75}px` : '14px'
+                    spanElement.style.fontWeight = bold ? 'bold' : 'normal'
+                    spanElement.style.fontStyle = italic ? 'italic' : 'normal'
+                    spanElement.style.textDecoration = underline ? 'underline' : 'none'
+                  }
+                  spanElement.innerText = span.text
+                  tdElement.appendChild(spanElement)
                 }
-                spanElement.innerText = span.text
-                tdElement.appendChild(spanElement)
+              } else if (hyperlink && typeof hyperlink === 'string') {
+                const link = cell.value
+                const linkElement: HTMLElement = document.createElement('a')
+                linkElement.setAttribute('href', link.hyperlink)
+                linkElement.setAttribute('target', '_blank')
+                linkElement.style.color = '#2f63c1'
+                linkElement.style.textDecoration = 'underline'
+                linkElement.innerText = link.text
+                tdElement.appendChild(linkElement)
               }
             } else if (cell.value instanceof Date) {
               tdElement.innerText = Dayjs(cell.value).format('YYYY-MM-DD HH:mm:ss')
