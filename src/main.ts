@@ -255,7 +255,7 @@ async function renderXlsx(
               tdElement.style.textDecoration = underline ? 'underline' : 'none'
             }
             // set cell value
-            if (typeof cell.value === 'object' && cell.value !== null) {
+            if (Object.prototype.toString.call(cell.value) === '[object Object]') {
               const { richText, hyperlink } = cell.value
               if (richText && richText instanceof Array) {
                 for (const span of richText) {

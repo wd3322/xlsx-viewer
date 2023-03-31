@@ -1,6 +1,6 @@
 {
   "name": "xlsx-viewer",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "xlsx viewer",
   "main": "dist/main.js",
   "repository": {
