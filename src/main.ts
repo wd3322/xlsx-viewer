@@ -51,9 +51,10 @@ async function renderXlsx(
     !(xlsxData instanceof File) &&
     !(xlsxData instanceof ArrayBuffer)
   ) {
-    throw { message: `[xlsx-viewer] error: ${xlsxData} is not a file` }
-  } else if (!(renderElement instanceof HTMLElement)) {
-    throw { message: `[xlsx-viewer] error: ${renderElement} is not a element` }
+    throw { message: `[xlsx-viewer error] xlsx data is not a file` }
+  }
+  if (!(renderElement instanceof HTMLElement)) {
+    throw { message: `[xlsx-viewer error] render element is not a element` }
   }
   // viewer params init
   const viewerParams: ViewerParams = {
@@ -255,7 +256,10 @@ async function renderXlsx(
               tdElement.style.textDecoration = underline ? 'underline' : 'none'
             }
             // set cell value
-            if (Object.prototype.toString.call(cell.value) === '[object Object]') {
+            if (
+              typeof cell.value === 'object' &&
+              Object.keys(cell.value).length > 0
+            ) {
               const { richText, hyperlink } = cell.value
               if (richText && richText instanceof Array) {
                 for (const span of richText) {
@@ -313,7 +317,7 @@ async function renderXlsx(
       argb: { a: number, r: number, g: number, b: number},
       color: string
     } | undefined {
-      if (typeof argb !== 'string' || argb.length !== 8) {
+      if (!argb || typeof argb !== 'string' || argb.length !== 8) {
         return undefined
       }
       let result: any
