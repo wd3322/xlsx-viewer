@@ -47,14 +47,15 @@ async function renderXlsx(
   renderElement: HTMLElement
 ): Promise<void> {
   if (
+    !xlsxData || (
     !(xlsxData instanceof Blob) &&
     !(xlsxData instanceof File) &&
-    !(xlsxData instanceof ArrayBuffer)
+    !(xlsxData instanceof ArrayBuffer))
   ) {
-    throw { message: `[xlsx-viewer error] xlsx data is not a file` }
+    throw new Error(`renderXlsx ${xlsxData} is not a file`)
   }
-  if (!(renderElement instanceof HTMLElement)) {
-    throw { message: `[xlsx-viewer error] render element is not a element` }
+  if (!renderElement || !(renderElement instanceof HTMLElement)) {
+    throw new Error(`renderXlsx ${renderElement} is not a element`)
   }
   // viewer params init
   const viewerParams: ViewerParams = {
