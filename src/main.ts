@@ -258,6 +258,7 @@ async function renderXlsx(
             }
             // set cell value
             if (
+              cell.value && 
               typeof cell.value === 'object' &&
               Object.keys(cell.value).length > 0
             ) {
@@ -334,11 +335,10 @@ async function renderXlsx(
       return result
     }
   }
-  // run methods
-  viewerMethods.createXlsxContainerElement()
   // check browser compatibility
   if (
     (window.navigator.userAgent.indexOf('MSIE') !== -1 || 'ActiveXObject' in window) &&
+    viewerMethods.createXlsxContainerElement() &&
     viewerElements.tipElement instanceof HTMLElement
   ) {
     viewerElements.tipElement.innerText = `Browser incompatibility.`
@@ -350,6 +350,7 @@ async function renderXlsx(
   } else if (xlsxData instanceof ArrayBuffer) {
     viewerParams.arrayBuffer = xlsxData
   }
+  viewerMethods.createXlsxContainerElement()
   await viewerMethods.loadXlsxDataWorkbook()
   viewerMethods.createTableContainerElement()
   if (viewerElements.tipElement instanceof HTMLElement) {
