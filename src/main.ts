@@ -7,8 +7,16 @@
 import Dayjs from 'dayjs'
 import ExcelJS from 'exceljs'
 
+interface xlsxOptions {
+  initialSheetIndex?: number,
+  frameRenderSize?: number,
+  onLoad?: Function,
+  onRender?: Function,
+  onSwitch?: Function
+}
+
 interface SheetItem {
-  id: string,
+  id: number,
   name: string,
   columns: any[],
   rows: any[],
@@ -19,11 +27,12 @@ interface SheetItem {
 
 interface ViewerParams {
   arrayBuffer?: ArrayBuffer,
-  sheetList: SheetItem[]
+  sheetList: SheetItem[],
+  currentSheetId?: number
 }
 
 interface ViewerElements {
-  renderElement?: HTMLElement,
+  xlsxElement?: HTMLElement,
   containerElement?: HTMLElement,
   tipElement?: HTMLElement,
   sheetElement?: HTMLElement,
@@ -44,8 +53,16 @@ interface UtilMethods {
 
 async function renderXlsx( 
   xlsxData: Blob | File | ArrayBuffer,
-  renderElement: HTMLElement
+  xlsxElement: HTMLElement,
+  xlsxOptions: xlsxOptions = {}
 ): Promise<void> {
+  const { 
+    initialSheetIndex = 0,
+    frameRenderSize = 500,
+    onLoad = () => {},
+    onRender = () => {},
+    onSwitch = () => {}
+  }: xlsxOptions = xlsxOptions
   if (
     !xlsxData || (
     !(xlsxData instanceof Blob) &&
@@ -54,17 +71,36 @@ async function renderXlsx(
   ) {
     throw new Error(`renderXlsx ${xlsxData} is not a file`)
   }
-  if (!renderElement || !(renderElement instanceof HTMLElement)) {
-    throw new Error(`renderXlsx ${renderElement} is not a element`)
+  if (!xlsxElement || !(xlsxElement instanceof HTMLElement)) {
+    throw new Error(`renderXlsx ${xlsxElement} is not a element`)
+  }
+  if (!xlsxOptions || typeof xlsxOptions !== 'object') {
+    throw new Error(`renderXlsx ${xlsxOptions} is not a object`)
+  }
+  if (typeof initialSheetIndex !== 'number') {
+    throw new Error(`renderXlsx 'initialSheetIndex' is not a number`)
+  }
+  if (typeof frameRenderSize !== 'number') {
+    throw new Error(`renderXlsx 'frameRenderSize' is not a number`)
+  }
+  if (!onLoad || typeof onLoad !== 'function') {
+    throw new Error(`renderXlsx 'onLoad' is not a function`)
+  }
+  if (!onRender || typeof onRender !== 'function') {
+    throw new Error(`renderXlsx 'onRender' is not a function`)
+  }
+  if (!onSwitch || typeof onSwitch !== 'function') {
+    throw new Error(`renderXlsx 'onSwitch' is not a function`)
   }
   // viewer params init
   const viewerParams: ViewerParams = {
     arrayBuffer: undefined,
-    sheetList: []
+    sheetList: [],
+    currentSheetId: undefined
   }
   // viewer elements init
   const viewerElements: ViewerElements = {
-    renderElement: undefined,
+    xlsxElement: undefined,
     containerElement: undefined,
     tipElement: undefined,
     sheetElement: undefined,
@@ -77,7 +113,7 @@ async function renderXlsx(
         try {
           // load workbook
           (new ExcelJS.Workbook().xlsx.load((viewerParams.arrayBuffer as ArrayBuffer))).then((workbook: any) => {
-            workbook.eachSheet((worksheet: any, sheetId: string) => {
+            workbook.eachSheet((worksheet: any, sheetId: number) => {
               const sheetItem: SheetItem = {
                 id: sheetId,
                 name: worksheet.name,
@@ -115,6 +151,10 @@ async function renderXlsx(
               }
               viewerParams.sheetList.push(sheetItem)
             })
+            if (viewerElements.tipElement instanceof HTMLElement) {
+              viewerElements.tipElement.style.display = 'none'
+              onLoad(viewerParams.sheetList)
+            }
             resolve()
           })
         } catch (err) {
@@ -139,8 +179,8 @@ async function renderXlsx(
       viewerElements.sheetElement = xlsxViewerSheetElement
       viewerElements.tableElement = xlsxViewerTableElement
       viewerElements.tipElement = xlsxViewerTipElement
-      viewerElements.renderElement = renderElement
-      viewerElements.renderElement.appendChild(xlsxViewerContainerElement)
+      viewerElements.xlsxElement = xlsxElement
+      viewerElements.xlsxElement.appendChild(xlsxViewerContainerElement)
       viewerElements.containerElement.appendChild(xlsxViewerSheetElement)
       viewerElements.containerElement.appendChild(xlsxViewerTableElement)
       viewerElements.containerElement.appendChild(xlsxViewerTipElement)
@@ -161,8 +201,13 @@ async function renderXlsx(
           if (!sheetItem.rendered) {
             viewerMethods.createTableContentElement(sheetItem, xlsxViewerTableItemElement)
           }
+          if (sheetItem.id !== viewerParams.currentSheetId) {
+            viewerParams.currentSheetId = sheetItem.id
+            onSwitch(sheetItem)
+          }
         })
-        if (i === 0) {
+        if (i === (initialSheetIndex >= 0 && initialSheetIndex < viewerParams.sheetList.length ? initialSheetIndex : 0)) {
+          viewerParams.currentSheetId = sheetItem.id
           xlsxViewerSheetItemElement.classList.add('active')
           xlsxViewerTableItemElement.classList.add('active')
           viewerMethods.createTableContentElement(sheetItem, xlsxViewerTableItemElement)
@@ -179,6 +224,25 @@ async function renderXlsx(
       const tableElement: HTMLElement = document.createElement('table')
       const theadElement: HTMLElement = document.createElement('thead')
       const tbodyElement: HTMLElement = document.createElement('tbody')
+      const tbodyTrElementArr: HTMLElement[] = []
+      const appendTrElementToTbodyElement = (currentPage: number = 0) => {
+        requestAnimationFrame(() => {
+          for (let i = 0; i < frameRenderSize; i++) {
+            const trElement: HTMLElement = tbodyTrElementArr[currentPage * frameRenderSize + i]
+            if (trElement) {
+              tbodyElement.appendChild(trElement)
+            } else {
+              break
+            }
+          }
+          if (currentPage * frameRenderSize < tbodyTrElementArr.length) {
+            appendTrElementToTbodyElement(currentPage + 1)
+          } else {
+            sheetItem.rendered = true
+            onRender(sheetItem)
+          }
+        })
+      }
       // set sheet columns element
       if (sheetItem.columns.length > 0) {
         const trElement: HTMLElement = document.createElement('tr')
@@ -295,13 +359,13 @@ async function renderXlsx(
             }
             trElement.appendChild(tdElement)
           }
-          tbodyElement.appendChild(trElement)
+          tbodyTrElementArr.push(trElement)
         }
+        appendTrElementToTbodyElement()
       }
       tableElement.appendChild(theadElement)
       tableElement.appendChild(tbodyElement)
       xlsxViewerTableItemElement.appendChild(tableElement)
-      sheetItem.rendered = true
     }
   }
   // util methods init
@@ -353,9 +417,6 @@ async function renderXlsx(
   viewerMethods.createXlsxContainerElement()
   await viewerMethods.loadXlsxDataWorkbook()
   viewerMethods.createTableContainerElement()
-  if (viewerElements.tipElement instanceof HTMLElement) {
-    viewerElements.tipElement.style.display = 'none'
-  }
 }
 
 export default { renderXlsx }
