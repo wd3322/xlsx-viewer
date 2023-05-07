@@ -15,13 +15,16 @@ import xlsxViewer from 'xlsx-viewer'
 import 'xlsx-viewer/src/style.css'
 ```
 
-## render default
+## Render
+
+default
 
 ```javascript
 xlsxViewer.renderXlsx(data, document.querySelector('div'))
 ```
 
-## render options
+append options
+
 ```javascript
 xlsxViewer.renderXlsx(data, document.querySelector('div'), {
     initialSheetIndex: 0,
