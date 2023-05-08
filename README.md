@@ -27,17 +27,17 @@ append options
 
 ```javascript
 xlsxViewer.renderXlsx(data, document.querySelector('div'), {
-    initialSheetIndex: 0,
-    frameRenderSize: 500,
-    onLoad(sheets) {
-        console.log('onLoad', sheets)
-    },
-    onRender(sheet) {
-        console.log('onRender', sheet)
-    },
-    onSwitch(sheet) {
-        console.log('onSwitch', sheet)
-    }
+  initialSheetIndex: 0,
+  frameRenderSize: 500,
+  onLoad(sheets) {
+    console.log('onLoad', sheets)
+  },
+  onRender(sheet) {
+    console.log('onRender', sheet)
+  },
+  onSwitch(sheet) {
+    console.log('onSwitch', sheet)
+  }
 })
 ```
 
