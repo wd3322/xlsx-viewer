@@ -51,46 +51,45 @@ interface UtilMethods {
   parseARGB: Function
 }
 
-async function renderXlsx( 
+function getPrototype(value: any): string {
+  return Object.prototype.toString.call(value).replace(/^\[object (\S+)\]$/, '$1').toLowerCase()
+}
+
+async function renderXlsx(
   xlsxData: Blob | File | ArrayBuffer,
   xlsxElement: HTMLElement,
   xlsxOptions: xlsxOptions = {}
 ): Promise<void> {
-  const { 
+  const {
     initialSheetIndex = 0,
     frameRenderSize = 500,
     onLoad = () => {},
     onRender = () => {},
     onSwitch = () => {}
   }: xlsxOptions = xlsxOptions
-  if (
-    !xlsxData || (
-    !(xlsxData instanceof Blob) &&
-    !(xlsxData instanceof File) &&
-    !(xlsxData instanceof ArrayBuffer))
-  ) {
+  if (!['blob', 'file', 'arraybuffer'].includes(getPrototype(xlsxData))) {
     throw new Error(`renderXlsx ${xlsxData} is not a file`)
   }
-  if (!xlsxElement || !(xlsxElement instanceof HTMLElement)) {
+  if (getPrototype(xlsxElement).indexOf('element') === -1) {
     throw new Error(`renderXlsx ${xlsxElement} is not a element`)
   }
-  if (!xlsxOptions || typeof xlsxOptions !== 'object') {
+  if (getPrototype(xlsxOptions) !== 'object') {
     throw new Error(`renderXlsx ${xlsxOptions} is not a object`)
   }
-  if (typeof initialSheetIndex !== 'number') {
-    throw new Error(`renderXlsx 'initialSheetIndex' is not a number`)
+  if (getPrototype(initialSheetIndex) !== 'number') {
+    throw new Error('renderXlsx \'initialSheetIndex\' is not a number')
   }
-  if (typeof frameRenderSize !== 'number') {
-    throw new Error(`renderXlsx 'frameRenderSize' is not a number`)
+  if (getPrototype(frameRenderSize) !== 'number') {
+    throw new Error('renderXlsx \'frameRenderSize\' is not a number')
   }
-  if (!onLoad || typeof onLoad !== 'function') {
-    throw new Error(`renderXlsx 'onLoad' is not a function`)
+  if (getPrototype(onLoad) !== 'function') {
+    throw new Error('renderXlsx \'onLoad\' is not a function')
   }
-  if (!onRender || typeof onRender !== 'function') {
-    throw new Error(`renderXlsx 'onRender' is not a function`)
+  if (getPrototype(onRender) !== 'function') {
+    throw new Error('renderXlsx \'onRender\' is not a function')
   }
-  if (!onSwitch || typeof onSwitch !== 'function') {
-    throw new Error(`renderXlsx 'onSwitch' is not a function`)
+  if (getPrototype(onSwitch) !== 'function') {
+    throw new Error('renderXlsx \'onSwitch\' is not a function')
   }
   // viewer params init
   const viewerParams: ViewerParams = {
@@ -104,7 +103,7 @@ async function renderXlsx(
     containerElement: undefined,
     tipElement: undefined,
     sheetElement: undefined,
-    tableElement: undefined,
+    tableElement: undefined
   }
   // viewer methods init
   const viewerMethods: ViewerMethods = {
@@ -139,7 +138,7 @@ async function renderXlsx(
                     if (targetAddress) {
                       targetAddress.cells.push(cell)
                     } else {
-                      sheetItem.merges.push({ 
+                      sheetItem.merges.push({
                         address: cell._address,
                         master: cell,
                         cells: [cell]
@@ -151,14 +150,14 @@ async function renderXlsx(
               }
               viewerParams.sheetList.push(sheetItem)
             })
-            if (viewerElements.tipElement instanceof HTMLElement) {
+            if (viewerElements.tipElement && getPrototype(viewerElements.tipElement).indexOf('element') !== -1) {
               viewerElements.tipElement.style.display = 'none'
               onLoad(viewerParams.sheetList)
             }
             resolve()
           })
         } catch (err) {
-          if (viewerElements.tipElement instanceof HTMLElement) {
+          if (viewerElements.tipElement && getPrototype(viewerElements.tipElement).indexOf('element') !== -1) {
             viewerElements.tipElement.innerText = `Load error: ${err}`
           }
           console.error('[xlsx-viewer] load error: ', err)
@@ -170,23 +169,28 @@ async function renderXlsx(
       const xlsxViewerSheetElement: HTMLElement = document.createElement('div')
       const xlsxViewerTableElement: HTMLElement = document.createElement('div')
       const xlsxViewerTipElement: HTMLElement = document.createElement('div')
+      const oldXlsxViewerContainerElement: HTMLElement | null = xlsxElement.querySelector('.xlsx-viewer-container')
       xlsxViewerContainerElement.classList.add('xlsx-viewer-container')
       xlsxViewerSheetElement.classList.add('xlsx-viewer-sheet')
       xlsxViewerTableElement.classList.add('xlsx-viewer-table')
       xlsxViewerTipElement.classList.add('xlsx-viewer-tip')
       xlsxViewerTipElement.innerText = 'Loading...'
-      viewerElements.containerElement = xlsxViewerContainerElement
+      viewerElements.xlsxElement = xlsxElement
       viewerElements.sheetElement = xlsxViewerSheetElement
       viewerElements.tableElement = xlsxViewerTableElement
       viewerElements.tipElement = xlsxViewerTipElement
-      viewerElements.xlsxElement = xlsxElement
-      viewerElements.xlsxElement.appendChild(xlsxViewerContainerElement)
+      viewerElements.containerElement = xlsxViewerContainerElement
       viewerElements.containerElement.appendChild(xlsxViewerSheetElement)
       viewerElements.containerElement.appendChild(xlsxViewerTableElement)
       viewerElements.containerElement.appendChild(xlsxViewerTipElement)
+      if (oldXlsxViewerContainerElement) {
+        viewerElements.xlsxElement.replaceChild(viewerElements.containerElement, oldXlsxViewerContainerElement)
+      } else {
+        viewerElements.xlsxElement.appendChild(viewerElements.containerElement)
+      }
     },
     createTableContainerElement(): void {
-       for (let i = 0; i < viewerParams.sheetList.length; i++) {
+      for (let i = 0; i < viewerParams.sheetList.length; i++) {
         const sheetItem: SheetItem = viewerParams.sheetList[i]
         const xlsxViewerSheetItemElement: HTMLElement = document.createElement('div')
         const xlsxViewerTableItemElement: HTMLElement = document.createElement('div')
@@ -273,7 +277,7 @@ async function renderXlsx(
           for (let j = 0; j < sheetItem.columns.length; j++) {
             const cell: any = row.getCell(j + 1)
             if (cell.isMerged && cell.master._address !== cell._address) {
-              continue 
+              continue
             }
             const tdElement: HTMLElement = document.createElement('td')
             if (cell.isMerged && cell.master._address === cell._address) {
@@ -283,8 +287,8 @@ async function renderXlsx(
                 const maxRow: number = Math.max.apply(Math, merge.cells.map((cell: any) => cell.row))
                 const colSpan: number = maxCol - cell.col + 1
                 const rowSpan: number = maxRow - cell.row + 1
-                tdElement.setAttribute('colspan', colSpan.toString()) 
-                tdElement.setAttribute('rowSpan', rowSpan.toString()) 
+                tdElement.setAttribute('colspan', colSpan.toString())
+                tdElement.setAttribute('rowSpan', rowSpan.toString())
               }
             }
             // set row size
@@ -321,13 +325,9 @@ async function renderXlsx(
               tdElement.style.textDecoration = underline ? 'underline' : 'none'
             }
             // set cell value
-            if (
-              cell.value && 
-              typeof cell.value === 'object' &&
-              Object.keys(cell.value).length > 0
-            ) {
+            if (getPrototype(cell.value) === 'object') {
               const { richText, hyperlink } = cell.value
-              if (richText && richText instanceof Array) {
+              if (richText && getPrototype(richText) === 'array') {
                 for (const span of richText) {
                   const spanElement: HTMLElement = document.createElement('span')
                   if (span?.font) {
@@ -342,7 +342,7 @@ async function renderXlsx(
                   spanElement.innerText = span.text
                   tdElement.appendChild(spanElement)
                 }
-              } else if (hyperlink && typeof hyperlink === 'string') {
+              } else if (getPrototype(hyperlink) === 'string') {
                 const link = cell.value
                 const linkElement: HTMLElement = document.createElement('a')
                 linkElement.setAttribute('href', link.hyperlink)
@@ -352,7 +352,7 @@ async function renderXlsx(
                 linkElement.innerText = link.text
                 tdElement.appendChild(linkElement)
               }
-            } else if (cell.value instanceof Date) {
+            } else if (getPrototype(cell.value) === 'date') {
               tdElement.innerText = Dayjs(cell.value).format('YYYY-MM-DD HH:mm:ss')
             } else {
               tdElement.innerText = cell.value
@@ -379,11 +379,11 @@ async function renderXlsx(
         fileReader.readAsArrayBuffer(blob)
       })
     },
-    parseARGB(argb: string): { 
+    parseARGB(argb: string): {
       argb: { a: number, r: number, g: number, b: number},
       color: string
     } | undefined {
-      if (!argb || typeof argb !== 'string' || argb.length !== 8) {
+      if (getPrototype(argb) !== 'string' || argb.length !== 8) {
         return undefined
       }
       let result: any
@@ -392,7 +392,7 @@ async function renderXlsx(
         color.push(argb.substr(i * 2, 2))
       }
       const [a, r, g, b] = color.map((v) => parseInt(v, 16))
-      result = { 
+      result = {
         argb: { a, r, g, b },
         color: `rgba(${r}, ${g}, ${b}, ${a / 255})`
       }
@@ -400,21 +400,20 @@ async function renderXlsx(
     }
   }
   // check browser compatibility
+  viewerMethods.createXlsxContainerElement()
   if (
     (window.navigator.userAgent.indexOf('MSIE') !== -1 || 'ActiveXObject' in window) &&
-    viewerMethods.createXlsxContainerElement() &&
-    viewerElements.tipElement instanceof HTMLElement
+    (viewerElements.tipElement && getPrototype(viewerElements.tipElement).indexOf('element') !== -1)
   ) {
-    viewerElements.tipElement.innerText = `Browser incompatibility.`
+    viewerElements.tipElement.innerText = 'Browser incompatibility.'
     return
   }
   // load xlsx data
-  if (xlsxData instanceof Blob || xlsxData instanceof File) {
+  if (['blob', 'file'].includes(getPrototype(xlsxData))) {
     viewerParams.arrayBuffer = await utilMethods.blobOrFileToArrayBuffer(xlsxData)
-  } else if (xlsxData instanceof ArrayBuffer) {
-    viewerParams.arrayBuffer = xlsxData
+  } else if (getPrototype(xlsxData) === 'arraybuffer') {
+    viewerParams.arrayBuffer = (xlsxData as ArrayBuffer)
   }
-  viewerMethods.createXlsxContainerElement()
   await viewerMethods.loadXlsxDataWorkbook()
   viewerMethods.createTableContainerElement()
 }
