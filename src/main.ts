@@ -82,13 +82,13 @@ async function renderXlsx(
   if (getPrototype(frameRenderSize) !== 'number') {
     throw new Error('renderXlsx \'frameRenderSize\' is not a number')
   }
-  if (!['function', 'asyncfunction'].includes(getPrototype(onLoad))) {
+  if (getPrototype(onLoad).indexOf('function') !== -1) {
     throw new Error('renderXlsx \'onLoad\' is not a function')
   }
-  if (!['function', 'asyncfunction'].includes(getPrototype(onRender))) {
+  if (getPrototype(onRender).indexOf('function') !== -1) {
     throw new Error('renderXlsx \'onRender\' is not a function')
   }
-  if (!['function', 'asyncfunction'].includes(getPrototype(onSwitch))) {
+  if (getPrototype(onSwitch).indexOf('function') !== -1) {
     throw new Error('renderXlsx \'onSwitch\' is not a function')
   }
   // viewer params init
