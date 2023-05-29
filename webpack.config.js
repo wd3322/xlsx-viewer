@@ -1,5 +1,6 @@
 const path = require('path')
 const webpack = require('webpack')
+const MiniCssExtractPlugin = require('mini-css-extract-plugin')
  
 module.exports = {
   devtool: false,
@@ -19,13 +20,22 @@ module.exports = {
         loader: 'ts-loader', /* https://github.com/TypeStrong/ts-loader */
         options: {
           configFile: path.resolve(__dirname, './tsconfig.json'),
-          appendTsSuffixTo: [/\.vue$/],
-          transpileOnly: true, 
+          transpileOnly: true
         }
       }]
+    }, {
+      test: /\.scss$/,
+      use: [
+        { loader: MiniCssExtractPlugin.loader },
+        { loader: 'css-loader' },
+        { loader: 'sass-loader' }
+      ]
     }]
   },
   plugins: [
+    new MiniCssExtractPlugin({
+      filename: 'index.css'
+    }),
     new webpack.DefinePlugin({
       'process.env': {
         NODE_ENV: JSON.stringify('production')

@@ -2,18 +2,30 @@
 
 ![table](https://wd3322.gitee.io/to-vue3/img/xlsx-viewer/table.png)
 
+---
+
+## Document
+
+[http://wd3322.gitee.io/xlsx](http://wd3322.gitee.io/xlsx)
+
+---
+
 ## Install
 
 ```
 npm install xlsx-viewer
 ```
 
+---
+
 ## Import
 
 ```javascript
 import xlsxViewer from 'xlsx-viewer'
-import 'xlsx-viewer/src/style.css'
+import 'xlsx-viewer/lib/index.css'
 ```
+
+---
 
 ## Render
 
@@ -41,9 +53,16 @@ xlsxViewer.renderXlsx(data, document.querySelector('div'), {
 })
 ```
 
-
 | Prop        | Prop Type  | Type                    | Required |
 | :-------    | :-------   | :-------                | :------  |
 | data        | Attribute  | ArrayBuffer, Blob, File | True     |
 | element     | Attribute  | HTMLElement             | True     |
 | opitons     | Attribute  | Object                  | False    |
+
+----
+
+Package: el-form-model
+
+E-mail: diquick@qq.com
+
+Author: wd3322

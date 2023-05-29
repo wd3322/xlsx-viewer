@@ -6,6 +6,7 @@
 
 import Dayjs from 'dayjs'
 import ExcelJS from 'exceljs'
+import './style.scss'
 
 interface xlsxOptions {
   initialSheetIndex?: number,
@@ -82,13 +83,13 @@ async function renderXlsx(
   if (getPrototype(frameRenderSize) !== 'number') {
     throw new Error('renderXlsx \'frameRenderSize\' is not a number')
   }
-  if (getPrototype(onLoad).indexOf('function') !== -1) {
+  if (getPrototype(onLoad).indexOf('function') === -1) {
     throw new Error('renderXlsx \'onLoad\' is not a function')
   }
-  if (getPrototype(onRender).indexOf('function') !== -1) {
+  if (getPrototype(onRender).indexOf('function') === -1) {
     throw new Error('renderXlsx \'onRender\' is not a function')
   }
-  if (getPrototype(onSwitch).indexOf('function') !== -1) {
+  if (getPrototype(onSwitch).indexOf('function') === -1) {
     throw new Error('renderXlsx \'onSwitch\' is not a function')
   }
   // viewer params init
